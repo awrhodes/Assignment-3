@@ -5,6 +5,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <math.h>
+#include <geometry_msgs/Twist.h>
 
 static const std::string OPENCV_WINDOW = "Image window";
 
@@ -14,15 +15,24 @@ class ImageConverter
   image_transport::ImageTransport it_;
   image_transport::Subscriber image_sub_;
   image_transport::Publisher image_pub_;
+  ross::Publisher vel_pub_;
+
+  //angular and linear vels, ball pos
+  int angular, linear;
+  int ball_row, ball_col;
   
 public:
   ImageConverter()
     : it_(nh_)
   {
     // Subscrive to input video feed and publish output video feed
+    // sub to depth feed
     image_sub_ = it_.subscribe("/usb_cam/image_raw", 10, 
-      &ImageConverter::imageCb, this);
+		    &ImageConverter::imageCb, this);
+    depth_sub_ = it_.subscribe("camera/depth/image", 10,
+		    &Follow::imageCb, this);
     image_pub_ = it_.advertise("/image_converter/output_video", 10);
+    
 
     cv::namedWindow(OPENCV_WINDOW);
   }
@@ -67,6 +77,16 @@ public:
         }
     }
 
+    ball_row = row;
+    ball_col = col;
+
+    if(ball_col < msg->width * 0.45)
+	    angular = 1;
+    else if(ball_col > msg->widht * 0.55)
+	    angular = -1;
+    else
+	    ;
+
     // ROS_INFO("value: %d", cv_ptr->image.at<cv::Vec3b>(0,0).val[0]); 
     // ROS_INFO("value: %d", cv_ptr->image.at<cv::Vec3b>(0,0).val[1]); 
     // ROS_INFO("value: %d", cv_ptr->image.at<cv::Vec3b>(0,0).val[2]); 
@@ -87,7 +107,48 @@ public:
     // Output modified video stream
     image_pub_.publish(cv_ptr->toImageMsg());
   }
-};
+
+  void depthCb(const sensor_msgs::Image::ConstPtr& msg)
+  {
+	  //get dist to ball
+	  cv_bridge::CvImagePtr cv_ptr;
+	  try
+	  {
+		  cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::TYPE_32FC1);
+		  float distance = cv_ptr->image.at<float>(ball_row, ball_col);
+		  ROS_INFO("Distance: %f", distance);
+
+		  if (distance < 1.0)
+			  linear = -1;
+		  else if (distance > 1.1)
+			  linear = 1;
+		  else
+			  ;
+
+		  move();
+	  }
+	  catch (cv_bridge::Exception& e)
+	  {
+		  ROS_ERROR("cv_bridge exception: %s", e.what());
+	  }
+  }
+
+  void move()
+  {
+	  float lspd = 0.125;
+	  float apd = 0.250;
+
+	  geometry_msgs::Twist vel_msg;
+
+	  vel_msg.linear.y = vel_msg.linear.z = 0;
+	  vel_msg.angular.x = vel_msg.angular.y = 0;
+	  vel_msg.linear.x = lspd * linear; 
+	  vel_msg.angular.z = aspd * angular;
+
+	  vel_pub_.publish(vel_msg);
+  }
+
+}; 
 
 int main(int argc, char** argv)
 {
