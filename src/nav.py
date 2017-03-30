@@ -20,25 +20,25 @@ class Navigation():
 
         rospy.init_node('Navigation')
 
-        self.cornerReached = goToCorner(self.goal1_x, self.goal1_y)
+        self.cornerReached = self.goToCorner(self.goal1_x, self.goal1_y)
         if self.cornerReached:
             print("Corner 1 reached.")
         else:
             print("Failed to reach Corner 1.")
 
-        self.cornerReached = goToCorner(self.goal2_x, self.goal2_y)
+        self.cornerReached = self.goToCorner(self.goal2_x, self.goal2_y)
         if self.cornerReached:
             print("Corner 2 reached.")
         else:
             print("Failed to reach Corner 2.")
 
-        self.cornerReached = goToCorner(self.goal3_x, self.goal3_y)
+        self.cornerReached = self.goToCorner(self.goal3_x, self.goal3_y)
         if self.cornerReached:
             print("Corner 3 reached.")
         else:
             print("Failed to reach Corner 3.")
 
-        self.cornerReached = goToCorner(self.goal4_x, self.goal4_y)
+        self.cornerReached = self.goToCorner(self.goal4_x, self.goal4_y)
         if self.cornerReached:
             print("Corner 4 reached.")
         else:
