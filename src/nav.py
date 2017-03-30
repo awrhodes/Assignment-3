@@ -62,6 +62,7 @@ class Navigation():
         goal.target_pose.pose.orientation.w = 1.0
 
         action.send_goal(corner)
+        print("Sent goal " + corner)
 
         action.wait_for_result(rospy.Duration(60))
 
@@ -75,6 +76,7 @@ class Navigation():
 if __name__ == 'main':
     try:
         Navigation()
+        print("Started nav")
         rospy.spin()
     except rospy.ROSInterruptException:
         print("ROSInterruptException. Navigation failed.")
