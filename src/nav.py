@@ -21,31 +21,34 @@ class Navigation():
         rospy.init_node('Navigation')
 
         self.cornerReached = goToCorner(self.goal1_x, self.goal1_y)
-        if self.cornerReached():
+        if self.cornerReached:
             print("Corner 1 reached.")
         else:
             print("Failed to reach Corner 1.")
 
         self.cornerReached = goToCorner(self.goal2_x, self.goal2_y)
-        if self.cornerReached():
+        if self.cornerReached:
             print("Corner 2 reached.")
         else:
             print("Failed to reach Corner 2.")
 
         self.cornerReached = goToCorner(self.goal3_x, self.goal3_y)
-        if self.cornerReached():
+        if self.cornerReached:
             print("Corner 3 reached.")
         else:
             print("Failed to reach Corner 3.")
 
         self.cornerReached = goToCorner(self.goal4_x, self.goal4_y)
-        if self.cornerReached():
+        if self.cornerReached:
             print("Corner 4 reached.")
         else:
             print("Failed to reach corner 4.")
 
     def goToCorner(self, x, y):
-        actionlib = actionlib.SimpleActionClient("moveBot", MoveBaseAction)
+        action = actionlib.SimpleActionClient("moveBot", MoveBaseAction)
+
+        while(not ac.wait_for_server(rospy.Duration.from_sec(5.0))):
+            print("Waiting for move_base action server to respond.")
 
         corner = MoveBaseGoal()
 
@@ -53,10 +56,16 @@ class Navigation():
         corner.target_pose.header.stamp = rospy.Time.now()
 
         corner.target_pose.position = Point(x, y, 0)
+        goal.target_pose.pose.orientation.x = 0.0
+        goal.target_pose.pose.orientation.y = 0.0
+        goal.target_pose.pose.orientation.z = 0.0
+        goal.target_pose.pose.orientation.w = 1.0
 
-        actionlib.send_goal(corner)
+        action.send_goal(corner)
 
-        if actionlib.get_state() == GoalStatus.SUCCEEDED:
+        action.wait_for_result(rospy.Duration(60))
+
+        if action.get_state() == GoalStatus.SUCCEEDED:
             print("Corner reached")
             return True
         else:
