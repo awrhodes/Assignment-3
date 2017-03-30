@@ -73,10 +73,12 @@ class Navigation():
             print("Failed to reach corner.")
             return False
 
-if __name__ == 'main':
-    try:
-        Navigation()
-        print("Started nav")
-        rospy.spin()
-    except rospy.ROSInterruptException:
-        print("ROSInterruptException. Navigation failed.")
+#if __name__ == 'main':
+#    try:
+#        Navigation()
+#        print("Started nav")
+#        rospy.spin()
+#    except rospy.ROSInterruptException:
+#        print("ROSInterruptException. Navigation failed.")
+
+Nav = Navigation()
